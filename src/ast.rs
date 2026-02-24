@@ -1,32 +1,32 @@
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Attr<'src> {
+pub(crate) struct Attribute<'src> {
   pub(crate) key: Id<'src>,
   pub(crate) value: Option<Id<'src>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct AttrStmt<'src> {
-  pub(crate) attrs: Vec<Attr<'src>>,
-  pub(crate) target: AttrTarget,
+pub(crate) struct AttributeStatement<'src> {
+  pub(crate) attributes: Vec<Attribute<'src>>,
+  pub(crate) target: AttributeTarget,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum AttrTarget {
+pub(crate) enum AttributeTarget {
   Edge,
   Graph,
   Node,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum EdgeOp {
+pub(crate) enum EdgeOperation {
   Arrow,
   DashDash,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct EdgeStmt<'src> {
-  pub(crate) attrs: Vec<Attr<'src>>,
-  pub(crate) edges: Vec<(EdgeOp, EdgeTarget<'src>)>,
+pub(crate) struct EdgeStatement<'src> {
+  pub(crate) attributes: Vec<Attribute<'src>>,
+  pub(crate) edges: Vec<(EdgeOperation, EdgeTarget<'src>)>,
   pub(crate) from: EdgeTarget<'src>,
 }
 
@@ -40,7 +40,7 @@ pub(crate) enum EdgeTarget<'src> {
 pub(crate) struct Graph<'src> {
   pub(crate) id: Option<Id<'src>>,
   pub(crate) kind: GraphKind,
-  pub(crate) stmts: Vec<Stmt<'src>>,
+  pub(crate) statements: Vec<Statement<'src>>,
   pub(crate) strict: bool,
 }
 
@@ -65,8 +65,8 @@ pub(crate) struct NodeId<'src> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct NodeStmt<'src> {
-  pub(crate) attrs: Vec<Attr<'src>>,
+pub(crate) struct NodeStatement<'src> {
+  pub(crate) attributes: Vec<Attribute<'src>>,
   pub(crate) id: NodeId<'src>,
 }
 
@@ -77,16 +77,16 @@ pub(crate) struct Port<'src> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Stmt<'src> {
+pub(crate) enum Statement<'src> {
   Assign(Id<'src>, Id<'src>),
-  Attr(AttrStmt<'src>),
-  Edge(EdgeStmt<'src>),
-  Node(NodeStmt<'src>),
+  Attr(AttributeStatement<'src>),
+  Edge(EdgeStatement<'src>),
+  Node(NodeStatement<'src>),
   Subgraph(Subgraph<'src>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub(crate) struct Subgraph<'src> {
   pub(crate) id: Option<Id<'src>>,
-  pub(crate) stmts: Vec<Stmt<'src>>,
+  pub(crate) statements: Vec<Statement<'src>>,
 }

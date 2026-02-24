@@ -52,36 +52,36 @@ where
 
   let node_id = id.then(port.or_not()).map(|(id, port)| NodeId { id, port });
 
-  let attr = id
+  let attribute = id
     .then(just(Token::Equals).ignore_then(id).or_not())
     .then_ignore(just(Token::Semicolon).or(just(Token::Comma)).or_not())
-    .map(|(key, value)| Attr { key, value });
+    .map(|(key, value)| Attribute { key, value });
 
-  let attr_list = just(Token::OpenBracket)
-    .ignore_then(attr.repeated().collect::<Vec<_>>())
+  let attribute_list = just(Token::OpenBracket)
+    .ignore_then(attribute.repeated().collect::<Vec<_>>())
     .then_ignore(just(Token::CloseBracket))
     .repeated()
     .at_least(1)
-    .collect::<Vec<Vec<Attr>>>()
+    .collect::<Vec<Vec<Attribute>>>()
     .map(|lists| lists.into_iter().flatten().collect::<Vec<_>>());
 
-  let edge_op = select! {
-    Token::Arrow => EdgeOp::Arrow,
-    Token::DashDash => EdgeOp::DashDash,
+  let edge_operation = select! {
+    Token::Arrow => EdgeOperation::Arrow,
+    Token::DashDash => EdgeOperation::DashDash,
   };
 
-  let stmt_list = recursive(|stmt_list| {
+  let statement_list = recursive(|statement_list| {
     let subgraph = just(Token::Subgraph)
       .ignore_then(id.or_not())
       .or_not()
       .then(
         just(Token::OpenBrace)
-          .ignore_then(stmt_list)
+          .ignore_then(statement_list)
           .then_ignore(just(Token::CloseBrace)),
       )
-      .map(|(header, stmts)| Subgraph {
+      .map(|(header, statements)| Subgraph {
         id: header.flatten(),
-        stmts,
+        statements,
       });
 
     let edge_target = node_id
@@ -89,54 +89,60 @@ where
       .map(EdgeTarget::NodeId)
       .or(subgraph.clone().map(EdgeTarget::Subgraph));
 
-    let edge_rhs = edge_op
+    let edge_rhs = edge_operation
       .then(edge_target.clone())
       .repeated()
       .at_least(1)
       .collect::<Vec<_>>();
 
-    let edge_stmt = edge_target
+    let edge_statement = edge_target
       .then(edge_rhs)
-      .then(attr_list.clone().or_not())
+      .then(attribute_list.clone().or_not())
       .map(|((from, edges), attrs)| {
-        Stmt::Edge(EdgeStmt {
-          attrs: attrs.unwrap_or_default(),
+        Statement::Edge(EdgeStatement {
+          attributes: attrs.unwrap_or_default(),
           edges,
           from,
         })
       });
 
-    let attr_target = select! {
-      Token::Graph => AttrTarget::Graph,
-      Token::Node => AttrTarget::Node,
-      Token::Edge => AttrTarget::Edge,
+    let attribute_target = select! {
+      Token::Graph => AttributeTarget::Graph,
+      Token::Node => AttributeTarget::Node,
+      Token::Edge => AttributeTarget::Edge,
     };
 
-    let attr_stmt = attr_target
-      .then(attr_list.clone())
-      .map(|(target, attrs)| Stmt::Attr(AttrStmt { attrs, target }));
+    let attribute_statement = attribute_target
+      .then(attribute_list.clone())
+      .map(|(target, attrs)| {
+        Statement::Attr(AttributeStatement {
+          attributes: attrs,
+          target,
+        })
+      });
 
     let assign = id
       .then_ignore(just(Token::Equals))
       .then(id)
-      .map(|(key, value)| Stmt::Assign(key, value));
+      .map(|(key, value)| Statement::Assign(key, value));
 
-    let node_stmt = node_id.then(attr_list.or_not()).map(|(id, attrs)| {
-      Stmt::Node(NodeStmt {
-        attrs: attrs.unwrap_or_default(),
-        id,
-      })
-    });
+    let node_statement =
+      node_id.then(attribute_list.or_not()).map(|(id, attrs)| {
+        Statement::Node(NodeStatement {
+          attributes: attrs.unwrap_or_default(),
+          id,
+        })
+      });
 
-    let stmt = choice((
-      attr_stmt,
-      edge_stmt,
+    let statement = choice((
+      attribute_statement,
+      edge_statement,
       assign,
-      subgraph.map(Stmt::Subgraph),
-      node_stmt,
+      subgraph.map(Statement::Subgraph),
+      node_statement,
     ));
 
-    stmt
+    statement
       .then_ignore(just(Token::Semicolon).or_not())
       .repeated()
       .collect::<Vec<_>>()
@@ -154,14 +160,14 @@ where
     .then(id.or_not())
     .then(
       just(Token::OpenBrace)
-        .ignore_then(stmt_list)
+        .ignore_then(statement_list)
         .then_ignore(just(Token::CloseBrace)),
     )
     .then_ignore(end())
-    .map(|(((strict, kind), id), stmts)| Graph {
+    .map(|(((strict, kind), id), statements)| Graph {
       id,
       kind,
-      stmts,
+      statements,
       strict,
     })
 }
@@ -175,33 +181,33 @@ mod tests {
     let ast = parse("digraph { { a } }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Subgraph(Subgraph { id: None, stmts })] if stmts.len() == 1,
+      &ast.statements[..],
+      [Statement::Subgraph(Subgraph { id: None, statements })] if statements.len() == 1,
     );
   }
 
   #[test]
-  fn assign_stmt() {
+  fn assign_statement() {
     let ast = parse("digraph { label = \"hello\" }");
 
     assert_eq!(
-      ast.stmts,
-      vec![Stmt::Assign(Id::Ident("label"), Id::String("hello"),)],
+      ast.statements,
+      vec![Statement::Assign(Id::Ident("label"), Id::String("hello"),)],
     );
   }
 
   #[test]
-  fn attr_stmt() {
+  fn attr_statement() {
     let ast = parse("digraph { node [shape=circle] }");
 
     assert_eq!(
-      ast.stmts,
-      vec![Stmt::Attr(AttrStmt {
-        attrs: vec![Attr {
+      ast.statements,
+      vec![Statement::Attr(AttributeStatement {
+        attributes: vec![Attribute {
           key: Id::Ident("shape"),
           value: Some(Id::Ident("circle")),
         }],
-        target: AttrTarget::Node,
+        target: AttributeTarget::Node,
       })],
     );
   }
@@ -211,21 +217,21 @@ mod tests {
     let ast = parse("digraph { a -> b -> c }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Edge(EdgeStmt { edges, .. })] if edges.len() == 2,
+      &ast.statements[..],
+      [Statement::Edge(EdgeStatement { edges, .. })] if edges.len() == 2,
     );
   }
 
   #[test]
-  fn edge_stmt() {
+  fn edge_statement() {
     let ast = parse("digraph { a -> b }");
 
     assert_eq!(
-      ast.stmts,
-      vec![Stmt::Edge(EdgeStmt {
-        attrs: vec![],
+      ast.statements,
+      vec![Statement::Edge(EdgeStatement {
+        attributes: vec![],
         edges: vec![(
-          EdgeOp::Arrow,
+          EdgeOperation::Arrow,
           EdgeTarget::NodeId(NodeId {
             id: Id::Ident("b"),
             port: None,
@@ -248,7 +254,7 @@ mod tests {
       Graph {
         id: None,
         kind: GraphKind::Digraph,
-        stmts: vec![],
+        statements: vec![],
         strict: false,
       },
     );
@@ -263,7 +269,7 @@ mod tests {
       Graph {
         id: None,
         kind: GraphKind::Graph,
-        stmts: vec![],
+        statements: vec![],
         strict: false,
       },
     );
@@ -277,13 +283,13 @@ mod tests {
   }
 
   #[test]
-  fn node_stmt() {
+  fn node_statement() {
     let ast = parse("digraph { a }");
 
     assert_eq!(
-      ast.stmts,
-      vec![Stmt::Node(NodeStmt {
-        attrs: vec![],
+      ast.statements,
+      vec![Statement::Node(NodeStatement {
+        attributes: vec![],
         id: NodeId {
           id: Id::Ident("a"),
           port: None,
@@ -297,14 +303,14 @@ mod tests {
     let ast = parse("digraph { a [color=red, shape=circle] }");
 
     assert_eq!(
-      ast.stmts,
-      vec![Stmt::Node(NodeStmt {
-        attrs: vec![
-          Attr {
+      ast.statements,
+      vec![Statement::Node(NodeStatement {
+        attributes: vec![
+          Attribute {
             key: Id::Ident("color"),
             value: Some(Id::Ident("red")),
           },
-          Attr {
+          Attribute {
             key: Id::Ident("shape"),
             value: Some(Id::Ident("circle")),
           },
@@ -326,8 +332,8 @@ mod tests {
     let ast = parse("digraph { a:p1 -> b:p2 }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Edge(EdgeStmt {
+      &ast.statements[..],
+      [Statement::Edge(EdgeStatement {
         from: EdgeTarget::NodeId(NodeId {
           port: Some(Port {
             compass: None,
@@ -345,8 +351,8 @@ mod tests {
     let ast = parse("digraph { a:p1:n -> b }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Edge(EdgeStmt {
+      &ast.statements[..],
+      [Statement::Edge(EdgeStatement {
         from: EdgeTarget::NodeId(NodeId {
           port: Some(Port {
             compass: Some(Id::Ident("n")),
@@ -363,7 +369,7 @@ mod tests {
   fn semicolons() {
     let ast = parse("digraph { a; b; c; }");
 
-    assert_eq!(ast.stmts.len(), 3);
+    assert_eq!(ast.statements.len(), 3);
   }
 
   #[test]
@@ -378,8 +384,8 @@ mod tests {
     let ast = parse("digraph { subgraph cluster_0 { a } }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Subgraph(Subgraph { id: Some(Id::Ident("cluster_0")), stmts })] if stmts.len() == 1,
+      &ast.statements[..],
+      [Statement::Subgraph(Subgraph { id: Some(Id::Ident("cluster_0")), statements })] if statements.len() == 1,
     );
   }
 
@@ -388,8 +394,8 @@ mod tests {
     let ast = parse("graph { a -- b }");
 
     assert_matches!(
-      &ast.stmts[..],
-      [Stmt::Edge(EdgeStmt { edges, .. })] if edges[0].0 == EdgeOp::DashDash,
+      &ast.statements[..],
+      [Statement::Edge(EdgeStatement { edges, .. })] if edges[0].0 == EdgeOperation::DashDash,
     );
   }
 }

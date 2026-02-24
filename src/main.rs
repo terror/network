@@ -1,8 +1,9 @@
 use {
   crate::{
     ast::{
-      Attr, AttrStmt, AttrTarget, EdgeOp, EdgeStmt, EdgeTarget, Graph,
-      GraphKind, Id, NodeId, NodeStmt, Port, Stmt, Subgraph,
+      Attribute, AttributeStatement, AttributeTarget, EdgeOperation,
+      EdgeStatement, EdgeTarget, Graph, GraphKind, Id, NodeId, NodeStatement,
+      Port, Statement, Subgraph,
     },
     lexer::Span,
     token::Token,
