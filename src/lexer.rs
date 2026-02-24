@@ -3,7 +3,11 @@ use super::*;
 pub(crate) type Span = SimpleSpan<usize>;
 pub(crate) type Spanned<'src> = (Token<'src>, Span);
 
-pub(crate) fn lexer<'src>()
+pub(crate) fn lex(src: &str) -> ParseResult<Vec<Spanned<'_>>, Rich<'_, char>> {
+  lexer().parse(src)
+}
+
+fn lexer<'src>()
 -> impl Parser<'src, &'src str, Vec<Spanned<'src>>, extra::Err<Rich<'src, char>>>
 {
   let digits = text::digits(10).to_slice();
@@ -143,7 +147,7 @@ mod tests {
 
   #[test]
   fn error_on_invalid() {
-    assert!(lexer().parse("@").into_result().is_err());
+    assert!(super::lex("@").into_result().is_err());
   }
 
   #[test]

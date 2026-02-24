@@ -1,15 +1,43 @@
 use {
-  crate::token::Token,
+  crate::{
+    ast::{
+      Attr, AttrStmt, AttrTarget, EdgeOp, EdgeStmt, EdgeTarget, Graph,
+      GraphKind, Id, NodeId, NodeStmt, Port, Stmt, Subgraph,
+    },
+    lexer::Span,
+    token::Token,
+  },
   ariadne::{Label, Report, ReportKind, Source},
-  chumsky::{input::InputRef, prelude::*},
+  chumsky::{
+    input::{InputRef, ValueInput},
+    prelude::*,
+  },
   std::{
     env,
     fmt::{self, Display, Formatter},
-    fs, process,
+    fs,
+    ops::Range,
+    process,
   },
 };
 
+#[macro_export]
+macro_rules! assert_matches {
+  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
+    match $expression {
+      $( $pattern )|+ $( if $guard )? => {}
+      left => panic!(
+        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
+        left,
+        stringify!($($pattern)|+ $(if $guard)?)
+      ),
+    }
+  }
+}
+
+mod ast;
 mod lexer;
+mod parser;
 mod token;
 
 fn main() {
@@ -23,26 +51,22 @@ fn main() {
     process::exit(1);
   });
 
-  let (tokens, errors) = lexer::lexer().parse(&src).into_output_errors();
+  let ast = parser::parse(&src).unwrap_or_else(|parse_errors| {
+    for error in &parse_errors {
+      let span = error.span.clone();
 
-  for error in &errors {
-    let span = error.span().into_range();
+      Report::build(ReportKind::Error, (path.as_str(), span.clone()))
+        .with_message(&error.message)
+        .with_label(
+          Label::new((path.as_str(), span)).with_message(&error.message),
+        )
+        .finish()
+        .eprint((path.as_str(), Source::from(&src)))
+        .unwrap();
+    }
 
-    Report::build(ReportKind::Error, (path.as_str(), span.clone()))
-      .with_message(error.to_string())
-      .with_label(
-        Label::new((path.as_str(), span)).with_message(error.to_string()),
-      )
-      .finish()
-      .eprint((path.as_str(), Source::from(&src)))
-      .unwrap();
-  }
+    process::exit(1);
+  });
 
-  if !errors.is_empty() {
-    std::process::exit(1);
-  }
-
-  for (token, span) in tokens.unwrap() {
-    println!("{span}: {token}");
-  }
+  println!("{ast:#?}");
 }
