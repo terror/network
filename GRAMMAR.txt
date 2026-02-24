@@ -1,43 +1,76 @@
-graph
-  = [ "strict" ] ( "graph" | "digraph" ) [ ID ] "{" stmt_list "}" ;
+graph        : strict? (graph_kw | digraph_kw) id? '{' stmt_list '}' EOF
 
-stmt_list
-  = { stmt [ ";" ] } ;
+stmt_list    : stmt (';'? stmt)* ';'?
 
-stmt
-  = node_stmt
-  | edge_stmt
-  | attr_stmt
-  | ID "=" ID
-  | subgraph ;
+stmt         : node_stmt
+             | edge_stmt
+             | attr_stmt
+             | id '=' id
+             | subgraph
 
-attr_stmt
-  = ( "graph" | "node" | "edge" ) attr_list ;
+attr_stmt    : (graph_kw | node_kw | edge_kw) attr_list
 
-attr_list
-  = "[" [ a_list ] "]" { "[" [ a_list ] "]" } ;
+attr_list    : ('[' a_list? ']')+
 
-a_list
-  = ID "=" ID [ ( ";" | "," ) ] { ID "=" ID [ ( ";" | "," ) ] } ;
+a_list       : (id ('=' id)? (';' | ',')?)+
 
-edge_stmt
-  = ( node_id | subgraph ) edgeRHS [ attr_list ] ;
+edge_stmt    : (node_id | subgraph) edge_rhs attr_list?
 
-edgeRHS
-  = edgeop ( node_id | subgraph ) { edgeop ( node_id | subgraph ) } ;
+edge_rhs     : (edge_op (node_id | subgraph))+
 
-node_stmt
-  = node_id [ attr_list ] ;
+edge_op      : '->'
+             | '--'
 
-node_id
-  = ID [ port ] ;
+node_stmt    : node_id attr_list?
 
-port
-  = ":" ID [ ":" compass_pt ]
-  | ":" compass_pt ;
+node_id      : id port?
 
-subgraph
-  = [ "subgraph" [ ID ] ] "{" stmt_list "}" ;
+port         : ':' id (':' id)?
 
-compass_pt
-  = "n" | "ne" | "e" | "se" | "s" | "sw" | "w" | "nw" | "c" | "_" ;
+subgraph     : (subgraph_kw id?)? '{' stmt_list '}'
+
+id           : id_token
+             | string
+             | html_string
+             | number
+
+number       : '-'? ('.' digit+ | digit+ ('.' digit*)?)
+
+id_token     : letter (letter | digit)*
+
+string       : '"' char* '"'
+
+char         : char_no_dq_or_bs
+             | esc
+
+esc          : '\\' any_char
+
+html_string  : '<' (tag | not_angle)* '>'
+
+tag          : '<' any_char* '>'
+
+digit        : '0' | '1' | '2' | '3' | '4'
+             | '5' | '6' | '7' | '8' | '9'
+
+letter       : 'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g'
+             | 'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n'
+             | 'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u'
+             | 'v' | 'w' | 'x' | 'y' | 'z'
+             | '_'
+
+strict       : 'strict'
+
+graph_kw     : 'graph'
+
+digraph_kw   : 'digraph'
+
+node_kw      : 'node'
+
+edge_kw      : 'edge'
+
+subgraph_kw  : 'subgraph'
+
+EOF              : ? end of input ?
+any_char         : ? any character ?
+char_no_dq_or_bs : ? any character except " and \ ?
+not_angle        : ? any character except < and > ?
