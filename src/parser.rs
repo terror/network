@@ -1,9 +1,9 @@
 use super::*;
 
 #[derive(Debug)]
-pub(crate) struct ParseError {
-  pub(crate) message: String,
-  pub(crate) span: Range<usize>,
+pub struct ParseError {
+  pub message: String,
+  pub span: Range<usize>,
 }
 
 pub(crate) fn parse(src: &str) -> Result<Graph<'_>, Vec<ParseError>> {

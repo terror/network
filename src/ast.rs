@@ -37,7 +37,7 @@ pub(crate) enum EdgeTarget<'src> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Graph<'src> {
+pub struct Graph<'src> {
   pub(crate) id: Option<Id<'src>>,
   pub(crate) kind: GraphKind,
   pub(crate) statements: Vec<Statement<'src>>,

@@ -1,45 +1,8 @@
 use {
-  crate::{
-    ast::{
-      Attribute, AttributeStatement, AttributeTarget, EdgeOperation,
-      EdgeStatement, EdgeTarget, Graph, GraphKind, Id, NodeId, NodeStatement,
-      Port, Statement, Subgraph,
-    },
-    lexer::Span,
-    token::Token,
-  },
   ariadne::{Label, Report, ReportKind, Source},
-  chumsky::{
-    input::{InputRef, ValueInput},
-    prelude::*,
-  },
-  std::{
-    env,
-    fmt::{self, Display, Formatter},
-    fs,
-    ops::Range,
-    process,
-  },
+  network::parse,
+  std::{env, fs, process},
 };
-
-#[macro_export]
-macro_rules! assert_matches {
-  ($expression:expr, $( $pattern:pat_param )|+ $( if $guard:expr )? $(,)?) => {
-    match $expression {
-      $( $pattern )|+ $( if $guard )? => {}
-      left => panic!(
-        "assertion failed: (left ~= right)\n  left: `{:?}`\n right: `{}`",
-        left,
-        stringify!($($pattern)|+ $(if $guard)?)
-      ),
-    }
-  }
-}
-
-mod ast;
-mod lexer;
-mod parser;
-mod token;
 
 fn main() {
   let path = env::args().nth(1).unwrap_or_else(|| {
@@ -52,7 +15,7 @@ fn main() {
     process::exit(1);
   });
 
-  let ast = parser::parse(&src).unwrap_or_else(|parse_errors| {
+  let ast = parse(&src).unwrap_or_else(|parse_errors| {
     for error in &parse_errors {
       let span = error.span.clone();
 
