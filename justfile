@@ -20,7 +20,7 @@ check:
 [group: 'check']
 ci: test clippy forbid
   cargo fmt --all -- --check
-  cargo update --locked --package network
+  cargo update --locked --package dotgraph
 
 [group: 'check']
 clippy:
@@ -40,7 +40,7 @@ forbid:
 
 [group: 'misc']
 install:
-  cargo install -f network
+  cargo install -f dotgraph
 
 [group: 'dev']
 install-dev-deps:

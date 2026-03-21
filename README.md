@@ -1,3 +1,3 @@
-## network
+## dotgraph
 
-**network** is a dot (graph description language) parser and renderer.
+**dotgraph** is a [dot](https://graphviz.org/doc/info/lang.html) (graph description language) parser and renderer.

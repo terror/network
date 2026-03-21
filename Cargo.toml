@@ -1,10 +1,10 @@
 [package]
-name = "network"
+name = "dotgraph"
 version = "0.1.0"
 edition = "2024"
 
 [[bin]]
-name = "net"
+name = "dot"
 path = "src/main.rs"
 
 [lints.clippy]

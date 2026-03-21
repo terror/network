@@ -1,12 +1,12 @@
 use {
   ariadne::{Label, Report, ReportKind, Source},
-  network::parse,
+  dotgraph::parse,
   std::{env, fs, process},
 };
 
 fn main() {
   let path = env::args().nth(1).unwrap_or_else(|| {
-    eprintln!("usage: network <file>");
+    eprintln!("usage: dotgraph <file>");
     process::exit(1);
   });
 

@@ -54,12 +54,12 @@ mod token;
 /// # Examples
 ///
 /// ```
-/// let graph = network::parse("digraph { foo -> bar }");
+/// let graph = dotgraph::parse("digraph { foo -> bar }");
 /// assert!(graph.is_ok());
 /// ```
 ///
 /// ```
-/// let error = network::parse("digraph {").unwrap_err();
+/// let error = dotgraph::parse("digraph {").unwrap_err();
 /// assert!(!error.is_empty());
 /// ```
 pub fn parse(src: &str) -> Result<Graph<'_>, Vec<ParseError>> {
