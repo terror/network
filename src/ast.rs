@@ -1,57 +1,57 @@
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Attribute<'src> {
-  pub(crate) key: Id<'src>,
-  pub(crate) value: Option<Id<'src>>,
+pub struct Attribute<'src> {
+  pub key: Id<'src>,
+  pub value: Option<Id<'src>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct AttributeStatement<'src> {
-  pub(crate) attributes: Vec<Attribute<'src>>,
-  pub(crate) target: AttributeTarget,
+pub struct AttributeStatement<'src> {
+  pub attributes: Vec<Attribute<'src>>,
+  pub target: AttributeTarget,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum AttributeTarget {
+pub enum AttributeTarget {
   Edge,
   Graph,
   Node,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum EdgeOperation {
+pub enum EdgeOperation {
   Arrow,
   DashDash,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct EdgeStatement<'src> {
-  pub(crate) attributes: Vec<Attribute<'src>>,
-  pub(crate) edges: Vec<(EdgeOperation, EdgeTarget<'src>)>,
-  pub(crate) from: EdgeTarget<'src>,
+pub struct EdgeStatement<'src> {
+  pub attributes: Vec<Attribute<'src>>,
+  pub edges: Vec<(EdgeOperation, EdgeTarget<'src>)>,
+  pub from: EdgeTarget<'src>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum EdgeTarget<'src> {
+pub enum EdgeTarget<'src> {
   NodeId(NodeId<'src>),
   Subgraph(Subgraph<'src>),
 }
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Graph<'src> {
-  pub(crate) id: Option<Id<'src>>,
-  pub(crate) kind: GraphKind,
-  pub(crate) statements: Vec<Statement<'src>>,
-  pub(crate) strict: bool,
+  pub id: Option<Id<'src>>,
+  pub kind: GraphKind,
+  pub statements: Vec<Statement<'src>>,
+  pub strict: bool,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum GraphKind {
+pub enum GraphKind {
   Digraph,
   Graph,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Id<'src> {
+pub enum Id<'src> {
   HtmlString(&'src str),
   Ident(&'src str),
   Number(&'src str),
@@ -59,25 +59,25 @@ pub(crate) enum Id<'src> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct NodeId<'src> {
-  pub(crate) id: Id<'src>,
-  pub(crate) port: Option<Port<'src>>,
+pub struct NodeId<'src> {
+  pub id: Id<'src>,
+  pub port: Option<Port<'src>>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct NodeStatement<'src> {
-  pub(crate) attributes: Vec<Attribute<'src>>,
-  pub(crate) id: NodeId<'src>,
+pub struct NodeStatement<'src> {
+  pub attributes: Vec<Attribute<'src>>,
+  pub id: NodeId<'src>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Port<'src> {
-  pub(crate) compass: Option<Id<'src>>,
-  pub(crate) id: Id<'src>,
+pub struct Port<'src> {
+  pub compass: Option<Id<'src>>,
+  pub id: Id<'src>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) enum Statement<'src> {
+pub enum Statement<'src> {
   Assign(Id<'src>, Id<'src>),
   Attr(AttributeStatement<'src>),
   Edge(EdgeStatement<'src>),
@@ -86,7 +86,7 @@ pub(crate) enum Statement<'src> {
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub(crate) struct Subgraph<'src> {
-  pub(crate) id: Option<Id<'src>>,
-  pub(crate) statements: Vec<Statement<'src>>,
+pub struct Subgraph<'src> {
+  pub id: Option<Id<'src>>,
+  pub statements: Vec<Statement<'src>>,
 }

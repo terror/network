@@ -1,9 +1,4 @@
 use {
-  ast::{
-    Attribute, AttributeStatement, AttributeTarget, EdgeOperation,
-    EdgeStatement, EdgeTarget, Graph, GraphKind, Id, NodeId, NodeStatement,
-    Port, Statement, Subgraph,
-  },
   chumsky::{
     input::{InputRef, ValueInput},
     prelude::*,
@@ -16,7 +11,14 @@ use {
   token::Token,
 };
 
-pub use parser::ParseError;
+pub use {
+  ast::{
+    Attribute, AttributeStatement, AttributeTarget, EdgeOperation,
+    EdgeStatement, EdgeTarget, Graph, GraphKind, Id, NodeId, NodeStatement,
+    Port, Statement, Subgraph,
+  },
+  parser::ParseError,
+};
 
 #[macro_export]
 macro_rules! assert_matches {
